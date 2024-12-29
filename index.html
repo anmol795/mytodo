@@ -137,7 +137,9 @@
             flex-wrap: wrap;
         }
 
-        .input-section input[type="text"], .input-section select {
+        .input-section input[type="text"], 
+        .input-section select, 
+        .input-section input[type="date"] {
             flex: 1;
             padding: 12px;
             border: 2px solid var(--input-border);
@@ -148,7 +150,9 @@
             transition: border-color 0.3s, background-color 0.3s, color 0.3s;
         }
 
-        .input-section input[type="text"]:focus, .input-section select:focus {
+        .input-section input[type="text"]:focus, 
+        .input-section select:focus, 
+        .input-section input[type="date"]:focus {
             border-color: #495057;
             outline: none;
         }
@@ -284,6 +288,15 @@
             border-left-color: #28a745; /* Green */
         }
 
+        /* Date Highlight */
+        .due-today {
+            border-left-color: #17a2b8 !important; /* Blue for tasks due today */
+        }
+
+        .due-overdue {
+            border-left-color: #dc3545 !important; /* Red for overdue tasks */
+        }
+
         /* Responsive Design */
         @media (max-width: 600px) {
             .input-section {
@@ -326,10 +339,21 @@
             <input type="text" id="taskInput" placeholder="Enter a new task">
             <select id="priorityInput">
                 <option value="low">Low Priority</option>
-                <option value="medium">Medium Priority</option>
+                <option value="medium" selected>Medium Priority</option>
                 <option value="high">High Priority</option>
             </select>
+            <input type="date" id="dueDateInput">
             <button onclick="addTask()">Add Task</button>
+        </div>
+        <div class="filter-section" style="margin-bottom: 20px;">
+            <label for="filterSelect">Filter by:</label>
+            <select id="filterSelect" onchange="renderTasks()">
+                <option value="all">All Tasks</option>
+                <option value="today">Due Today</option>
+                <option value="overdue">Overdue</option>
+                <option value="completed">Completed</option>
+                <option value="pending">Pending</option>
+            </select>
         </div>
         <ul id="taskList"></ul>
     </div>
@@ -399,18 +423,23 @@
         function addTask() {
             const taskInput = document.getElementById("taskInput");
             const priorityInput = document.getElementById("priorityInput");
+            const dueDateInput = document.getElementById("dueDateInput");
             const taskText = taskInput.value.trim();
             const priority = priorityInput.value;
+            const dueDateValue = dueDateInput.value;
 
             if (taskText === "") {
                 alert("Please enter a task.");
                 return;
             }
 
+            const dueDate = dueDateValue ? new Date(dueDateValue) : new Date();
+
             const task = {
                 id: Date.now(),
                 text: taskText,
                 priority: priority,
+                dueDate: dueDate.toISOString(),
                 completed: false,
                 createdAt: new Date().toLocaleString()
             };
@@ -419,6 +448,7 @@
             saveTasks();
             renderTasks();
             taskInput.value = "";
+            dueDateInput.value = new Date().toISOString().split('T')[0]; // Reset to today's date
         }
 
         // Function to delete a task
@@ -468,11 +498,32 @@
             const taskList = document.getElementById("taskList");
             taskList.innerHTML = "";
 
-            // Optional: Sort tasks by priority (High to Low)
+            const filter = document.getElementById("filterSelect").value;
+            const today = new Date();
+            today.setHours(0,0,0,0); // Reset time
+
+            // Optional: Sort tasks by priority (High to Low) and due date
             const priorityOrder = { 'high': 1, 'medium': 2, 'low': 3 };
-            const sortedTasks = tasks.sort((a, b) => priorityOrder[a.priority] - priorityOrder[b.priority]);
+            const sortedTasks = tasks.sort((a, b) => {
+                if (priorityOrder[a.priority] !== priorityOrder[b.priority]) {
+                    return priorityOrder[a.priority] - priorityOrder[b.priority];
+                }
+                return new Date(a.dueDate) - new Date(b.dueDate);
+            });
 
             sortedTasks.forEach((task, index) => {
+                // Apply filters
+                const taskDueDate = new Date(task.dueDate);
+                const isToday = taskDueDate.toDateString() === today.toDateString();
+                const isOverdue = !task.completed && taskDueDate < today;
+                const isCompleted = task.completed;
+                const isPending = !task.completed;
+
+                if (filter === "today" && !isToday) return;
+                if (filter === "overdue" && !isOverdue) return;
+                if (filter === "completed" && !isCompleted) return;
+                if (filter === "pending" && !isPending) return;
+
                 const li = document.createElement("li");
                 if (task.completed) {
                     li.classList.add("completed");
@@ -480,6 +531,14 @@
 
                 // Apply priority class
                 li.classList.add(`priority-${task.priority}`);
+
+                // Highlight due today or overdue
+                if (isToday && !task.completed) {
+                    li.classList.add("due-today");
+                }
+                if (isOverdue) {
+                    li.classList.add("due-overdue");
+                }
 
                 // Task Details
                 const taskDetails = document.createElement("div");
@@ -501,7 +560,8 @@
 
                 const taskMeta = document.createElement("span");
                 taskMeta.className = "task-meta";
-                taskMeta.textContent = `Created at: ${task.createdAt}`;
+                const dueDateFormatted = new Date(task.dueDate).toLocaleDateString();
+                taskMeta.textContent = `Due: ${dueDateFormatted} | Created at: ${task.createdAt}`;
 
                 taskInfo.appendChild(taskText);
                 taskInfo.appendChild(taskMeta);
@@ -532,8 +592,106 @@
                 li.appendChild(taskActions);
 
                 taskList.appendChild(li);
+
+                // Schedule Notification for Task Due
+                if (!task.completed) {
+                    scheduleTaskNotification(task);
+                }
             });
         }
+
+        // Function to schedule a notification for a task
+        function scheduleTaskNotification(task) {
+            const taskDueDate = new Date(task.dueDate);
+            const now = new Date();
+
+            // Calculate time difference in milliseconds
+            const timeDiff = taskDueDate - now;
+
+            if (timeDiff > 0) {
+                // Schedule notification 1 hour before due
+                const notificationTime = timeDiff - (60 * 60 * 1000); // 1 hour before
+
+                if (notificationTime > 0) {
+                    setTimeout(() => {
+                        showNotification(`Task Due Soon: ${task.text}`, `Your task "${task.text}" is due at ${new Date(task.dueDate).toLocaleTimeString()}.`);
+                    }, notificationTime);
+                } else if (timeDiff > 0 && timeDiff <= (60 * 60 * 1000)) {
+                    // If less than 1 hour remains, notify immediately
+                    showNotification(`Task Due Soon: ${task.text}`, `Your task "${task.text}" is due at ${new Date(task.dueDate).toLocaleTimeString()}.`);
+                }
+            } else {
+                // Task is overdue, you can choose to notify immediately or handle differently
+                showNotification(`Task Overdue: ${task.text}`, `Your task "${task.text}" was due on ${new Date(task.dueDate).toLocaleDateString()}.`);
+            }
+        }
+
+        // Function to show a browser notification
+        function showNotification(title, body) {
+            if (Notification.permission === "granted") {
+                new Notification(title, { body: body });
+            }
+        }
+
+        // Request notification permission on page load
+        window.onload = function() {
+            displayQuote();
+            if (Notification.permission !== "granted" && Notification.permission !== "denied") {
+                Notification.requestPermission().then(permission => {
+                    if (permission === "granted") {
+                        console.log("Notification permission granted.");
+                    }
+                });
+            }
+            renderTasks();
+            setUpMidnightReminder();
+        }
+
+        // Function to set up midnight reminder
+        function setUpMidnightReminder() {
+            const now = new Date();
+            const millisTillMidnight = new Date(now.getFullYear(), now.getMonth(), now.getDate()+1, 0,0,0,0) - now;
+            setTimeout(function(){
+                sendMidnightReminder();
+                // Set interval to send reminder every 24 hours
+                setInterval(sendMidnightReminder, 24 * 60 * 60 * 1000);
+            }, millisTillMidnight);
+        }
+
+        // Function to send midnight reminder and show report
+        function sendMidnightReminder() {
+            // Show notification
+            showNotification("Daily Planner", "Don't forget to plan your tasks for tomorrow!");
+
+            // Prepare report
+            const today = new Date();
+            today.setHours(0,0,0,0);
+            const todaysTasks = tasks.filter(task => {
+                const taskDate = new Date(task.dueDate);
+                return taskDate.toDateString() === today.toDateString();
+            });
+
+            const completedTasks = todaysTasks.filter(task => task.completed);
+            const pendingTasks = todaysTasks.filter(task => !task.completed);
+
+            let report = `Today's Report:\n\nCompleted Tasks (${completedTasks.length}):\n`;
+            completedTasks.forEach(task => {
+                report += `- ${task.text}\n`;
+            });
+
+            report += `\nPending Tasks (${pendingTasks.length}):\n`;
+            pendingTasks.forEach(task => {
+                report += `- ${task.text}\n`;
+            });
+
+            alert(report);
+        }
+
+        // Function to filter and render tasks based on filter selection
+        document.getElementById("filterSelect").addEventListener("change", renderTasks);
+
+        // Function to render tasks initially and whenever tasks change
+        // Already defined above
 
         // Initial render
         renderTasks();
