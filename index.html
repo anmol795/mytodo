@@ -39,7 +39,7 @@
         h1 {
             text-align: center;
             color: #34495e;
-            margin-bottom: 20px;
+            margin-bottom: 15px; /* Reduced space below header */
             font-size: 26px;
             font-weight: 700;
         }
@@ -49,10 +49,14 @@
             text-align: center;
             font-style: italic;
             color: #7f8c8d;
-            margin-bottom: 25px;
+            margin-bottom: 15px; /* Reduced space below quote */
             min-height: 50px;
             transition: opacity 0.5s ease-in-out;
             font-size: 16px;
+            background-color: #e8f4fa; /* Light highlight */
+            padding: 10px;
+            border-radius: 5px;
+            border-left: 4px solid #3498db;
         }
 
         /* Input Section */
@@ -106,20 +110,17 @@
             margin-bottom: 20px;
         }
 
-        /* Filter Section */
-        .filter-section {
+        /* Filter and Report Section */
+        .filter-report-section {
             display: flex;
             align-items: center;
+            justify-content: space-between;
             gap: 10px;
             margin-bottom: 20px;
         }
 
-        .filter-section label {
-            font-size: 14px;
-            color: #2c3e50;
-        }
-
-        .filter-section select {
+        .filter-report-section select {
+            flex: 1;
             padding: 8px;
             border: 2px solid #bdc3c7;
             border-radius: 5px;
@@ -129,20 +130,13 @@
             transition: border-color 0.3s, background-color 0.3s, color 0.3s;
         }
 
-        .filter-section select:focus {
+        .filter-report-section select:focus {
             border-color: #3498db;
             outline: none;
             background-color: #ffffff;
         }
 
-        /* Show Report Button */
-        .report-section {
-            display: flex;
-            justify-content: center;
-            margin-bottom: 20px;
-        }
-
-        .report-section button {
+        .filter-report-section button {
             padding: 10px 15px;
             background-color: #2ecc71;
             color: #ffffff;
@@ -151,9 +145,10 @@
             font-size: 14px;
             cursor: pointer;
             transition: background-color 0.3s;
+            flex-shrink: 0;
         }
 
-        .report-section button:hover {
+        .filter-report-section button:hover {
             background-color: #27ae60;
         }
 
@@ -305,13 +300,18 @@
                 width: 100%;
             }
 
-            .filter-section {
+            .filter-report-section {
                 flex-direction: column;
                 align-items: flex-start;
             }
 
-            .filter-section select {
+            .filter-report-section select {
                 width: 100%;
+            }
+
+            .filter-report-section button {
+                width: 100%;
+                margin-top: 10px;
             }
 
             .report-section {
@@ -341,6 +341,11 @@
             .task-info .task-meta {
                 font-size: 12px;
             }
+
+            .quote {
+                font-size: 15px;
+                padding: 8px;
+            }
         }
     </style>
 </head>
@@ -356,15 +361,12 @@
             <input type="checkbox" id="dailyTaskCheckbox">
             <label for="dailyTaskCheckbox">Mark as Daily Task</label>
         </div>
-        <div class="filter-section">
-            <label for="filterSelect">Filter:</label>
+        <div class="filter-report-section">
             <select id="filterSelect" onchange="renderTasks()">
                 <option value="all">All Tasks</option>
                 <option value="completed">Completed</option>
                 <option value="pending">Pending</option>
             </select>
-        </div>
-        <div class="report-section">
             <button onclick="showReport()">Show Report</button>
         </div>
         <div class="report-display" id="reportDisplay">
@@ -430,6 +432,7 @@
             displayQuote();
             resetDailyTasks();
             renderTasks();
+            scheduleDailyReset();
         }
 
         // Function to save tasks to localStorage
@@ -632,14 +635,6 @@
                 renderTasks();
                 scheduleDailyReset(); // Schedule next reset
             }, millisTillMidnight);
-        }
-
-        // Call scheduleDailyReset on page load
-        window.onload = function() {
-            displayQuote();
-            resetDailyTasks();
-            renderTasks();
-            scheduleDailyReset();
         }
 
         // Optional: Add task on Enter key press
