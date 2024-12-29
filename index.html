@@ -36,7 +36,17 @@
         h1 {
             text-align: center;
             color: #343a40;
+            margin-bottom: 10px;
+        }
+
+        /* Motivational Quote */
+        .quote {
+            text-align: center;
+            font-style: italic;
+            color: #6c757d;
             margin-bottom: 20px;
+            min-height: 40px;
+            transition: opacity 0.5s ease-in-out;
         }
 
         /* Input Section */
@@ -89,7 +99,7 @@
             margin-bottom: 10px;
             border-radius: 5px;
             border-left: 5px solid #28a745;
-            transition: background-color 0.3s, border-left-color 0.3s;
+            transition: background-color 0.3s, border-left-color 0.3s, transform 0.3s;
         }
 
         li.completed {
@@ -97,6 +107,23 @@
             border-left-color: #28a745;
             text-decoration: line-through;
             color: #6c757d;
+            transform: scale(1.02);
+        }
+
+        /* Animation for Task Completion */
+        li.completed {
+            animation: fadeIn 0.5s ease-in-out;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: scale(0.95);
+            }
+            to {
+                opacity: 1;
+                transform: scale(1);
+            }
         }
 
         .task-details {
@@ -135,7 +162,7 @@
             background: none;
             border: none;
             cursor: pointer;
-            font-size: 16px;
+            font-size: 20px;
             padding: 5px;
             border-radius: 5px;
             transition: background-color 0.3s;
@@ -159,6 +186,14 @@
 
         /* Responsive Design */
         @media (max-width: 600px) {
+            .input-section {
+                flex-direction: column;
+            }
+
+            .input-section button {
+                width: 100%;
+            }
+
             .task-details {
                 flex-direction: column;
                 align-items: flex-start;
@@ -167,6 +202,11 @@
             .task-actions {
                 justify-content: flex-end;
                 width: 100%;
+                margin-top: 10px;
+            }
+
+            .task-actions button {
+                font-size: 18px;
             }
         }
     </style>
@@ -174,6 +214,7 @@
 <body>
     <div class="container">
         <h1>Anmol's To-Do List</h1>
+        <div class="quote" id="quote">Loading motivational quote...</div>
         <div class="input-section">
             <input type="text" id="taskInput" placeholder="Enter a new task">
             <button onclick="addTask()">Add Task</button>
@@ -184,6 +225,38 @@
     <script>
         // Initialize tasks array from localStorage or empty
         let tasks = JSON.parse(localStorage.getItem('tasks')) || [];
+
+        // Array of motivational quotes
+        const quotes = [
+            "Believe you can and you're halfway there. – Theodore Roosevelt",
+            "The only way to do great work is to love what you do. – Steve Jobs",
+            "Don't watch the clock; do what it does. Keep going. – Sam Levenson",
+            "Keep your face always toward the sunshine—and shadows will fall behind you. – Walt Whitman",
+            "The future depends on what you do today. – Mahatma Gandhi",
+            "It does not matter how slowly you go as long as you do not stop. – Confucius",
+            "Start where you are. Use what you have. Do what you can. – Arthur Ashe",
+            "The harder you work for something, the greater you'll feel when you achieve it.",
+            "Dream it. Wish it. Do it.",
+            "Success is not for the lazy."
+        ];
+
+        // Function to display the daily motivational quote
+        function displayQuote() {
+            const quoteElement = document.getElementById('quote');
+            const today = new Date();
+            const dayOfYear = Math.floor((today - new Date(today.getFullYear(), 0, 0)) / 1000 / 60 / 60 / 24);
+            const quoteIndex = dayOfYear % quotes.length;
+            // Fade out current quote
+            quoteElement.style.opacity = 0;
+            setTimeout(() => {
+                quoteElement.textContent = quotes[quoteIndex];
+                // Fade in new quote
+                quoteElement.style.opacity = 1;
+            }, 500);
+        }
+
+        // Call displayQuote on page load
+        window.onload = displayQuote;
 
         // Function to save tasks to localStorage
         function saveTasks() {
@@ -234,7 +307,10 @@
 
         // Function to edit a task
         function editTask(id) {
-            const newText = prompt("Edit your task:");
+            const task = tasks.find(task => task.id === id);
+            if (!task) return;
+
+            const newText = prompt("Edit your task:", task.text);
             if (newText !== null) {
                 const trimmedText = newText.trim();
                 if (trimmedText === "") {
