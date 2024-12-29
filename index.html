@@ -14,36 +14,116 @@
 
         body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background-color: #e9ecef;
+            background-color: var(--background-color);
+            color: var(--text-color);
             display: flex;
             justify-content: center;
             align-items: flex-start;
             min-height: 100vh;
             padding: 20px;
+            transition: background-color 0.3s, color 0.3s;
+        }
+
+        /* CSS Variables for Themes */
+        :root {
+            --background-color: #e9ecef;
+            --text-color: #343a40;
+            --input-bg: #ffffff;
+            --input-border: #ced4da;
+            --button-bg: #28a745;
+            --button-hover-bg: #218838;
+            --task-bg: #f8f9fa;
+            --task-border: #28a745;
+            --task-completed-bg: #d4edda;
+            --task-completed-border: #28a745;
+            --quote-color: #6c757d;
+        }
+
+        body.dark-mode {
+            --background-color: #343a40;
+            --text-color: #f8f9fa;
+            --input-bg: #495057;
+            --input-border: #6c757d;
+            --button-bg: #17a2b8;
+            --button-hover-bg: #138496;
+            --task-bg: #495057;
+            --task-border: #17a2b8;
+            --task-completed-bg: #2d6b4f;
+            --task-completed-border: #17a2b8;
+            --quote-color: #adb5bd;
         }
 
         /* Container */
         .container {
             width: 100%;
             max-width: 800px;
-            background: #ffffff;
+            background: var(--input-bg);
             padding: 30px;
             border-radius: 10px;
             box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+            transition: background 0.3s;
         }
 
         /* Header */
         h1 {
             text-align: center;
-            color: #343a40;
+            color: var(--text-color);
             margin-bottom: 10px;
+        }
+
+        /* Theme Toggle */
+        .theme-toggle {
+            display: flex;
+            justify-content: flex-end;
+            margin-bottom: 10px;
+        }
+
+        .theme-toggle label {
+            display: flex;
+            align-items: center;
+            cursor: pointer;
+            user-select: none;
+        }
+
+        .theme-toggle input {
+            display: none;
+        }
+
+        .toggle-switch {
+            width: 50px;
+            height: 25px;
+            background-color: #ccc;
+            border-radius: 25px;
+            position: relative;
+            margin-right: 10px;
+            transition: background-color 0.3s;
+        }
+
+        .toggle-switch::after {
+            content: "";
+            width: 21px;
+            height: 21px;
+            background-color: #fff;
+            border-radius: 50%;
+            position: absolute;
+            top: 2px;
+            left: 2px;
+            transition: transform 0.3s;
+        }
+
+        .theme-toggle input:checked + .toggle-switch {
+            background-color: #28a745;
+        }
+
+        .theme-toggle input:checked + .toggle-switch::after {
+            transform: translateX(25px);
         }
 
         /* Motivational Quote */
         .quote {
             text-align: center;
             font-style: italic;
-            color: #6c757d;
+            color: var(--quote-color);
             margin-bottom: 20px;
             min-height: 40px;
             transition: opacity 0.5s ease-in-out;
@@ -54,35 +134,39 @@
             display: flex;
             gap: 10px;
             margin-bottom: 20px;
+            flex-wrap: wrap;
         }
 
-        .input-section input[type="text"] {
+        .input-section input[type="text"], .input-section select {
             flex: 1;
             padding: 12px;
-            border: 2px solid #ced4da;
+            border: 2px solid var(--input-border);
             border-radius: 5px;
             font-size: 16px;
-            transition: border-color 0.3s;
+            background-color: var(--input-bg);
+            color: var(--text-color);
+            transition: border-color 0.3s, background-color 0.3s, color 0.3s;
         }
 
-        .input-section input[type="text"]:focus {
+        .input-section input[type="text"]:focus, .input-section select:focus {
             border-color: #495057;
             outline: none;
         }
 
         .input-section button {
             padding: 12px 20px;
-            background-color: #28a745;
+            background-color: var(--button-bg);
             color: #ffffff;
             border: none;
             border-radius: 5px;
             font-size: 16px;
             cursor: pointer;
             transition: background-color 0.3s;
+            flex-shrink: 0;
         }
 
         .input-section button:hover {
-            background-color: #218838;
+            background-color: var(--button-hover-bg);
         }
 
         /* Task List */
@@ -94,17 +178,17 @@
             display: flex;
             align-items: center;
             justify-content: space-between;
-            background-color: #f8f9fa;
+            background-color: var(--task-bg);
             padding: 15px;
             margin-bottom: 10px;
             border-radius: 5px;
-            border-left: 5px solid #28a745;
+            border-left: 5px solid var(--task-border);
             transition: background-color 0.3s, border-left-color 0.3s, transform 0.3s;
         }
 
         li.completed {
-            background-color: #d4edda;
-            border-left-color: #28a745;
+            background-color: var(--task-completed-bg);
+            border-left-color: var(--task-completed-border);
             text-decoration: line-through;
             color: #6c757d;
             transform: scale(1.02);
@@ -131,6 +215,7 @@
             align-items: center;
             gap: 15px;
             flex: 1;
+            flex-wrap: wrap;
         }
 
         .task-details input[type="checkbox"] {
@@ -141,11 +226,12 @@
         .task-info {
             display: flex;
             flex-direction: column;
+            flex: 1;
         }
 
         .task-info .task-text {
             font-size: 18px;
-            color: #343a40;
+            color: var(--text-color);
         }
 
         .task-info .task-meta {
@@ -166,6 +252,7 @@
             padding: 5px;
             border-radius: 5px;
             transition: background-color 0.3s;
+            color: inherit;
         }
 
         .task-actions button.edit {
@@ -182,6 +269,19 @@
 
         .task-actions button.delete:hover {
             background-color: #f8d7da;
+        }
+
+        /* Priority Styles */
+        .priority-high {
+            border-left-color: #dc3545; /* Red */
+        }
+
+        .priority-medium {
+            border-left-color: #ffc107; /* Yellow */
+        }
+
+        .priority-low {
+            border-left-color: #28a745; /* Green */
         }
 
         /* Responsive Design */
@@ -213,10 +313,22 @@
 </head>
 <body>
     <div class="container">
+        <div class="theme-toggle">
+            <label>
+                <input type="checkbox" id="themeSwitch">
+                <div class="toggle-switch"></div>
+                <span>Dark Mode</span>
+            </label>
+        </div>
         <h1>Anmol's To-Do List</h1>
         <div class="quote" id="quote">Loading motivational quote...</div>
         <div class="input-section">
             <input type="text" id="taskInput" placeholder="Enter a new task">
+            <select id="priorityInput">
+                <option value="low">Low Priority</option>
+                <option value="medium">Medium Priority</option>
+                <option value="high">High Priority</option>
+            </select>
             <button onclick="addTask()">Add Task</button>
         </div>
         <ul id="taskList"></ul>
@@ -258,6 +370,26 @@
         // Call displayQuote on page load
         window.onload = displayQuote;
 
+        // Theme Toggle
+        const themeSwitch = document.getElementById('themeSwitch');
+
+        // Initialize theme based on localStorage
+        if (localStorage.getItem('theme') === 'dark') {
+            document.body.classList.add('dark-mode');
+            themeSwitch.checked = true;
+        }
+
+        // Event listener for theme toggle
+        themeSwitch.addEventListener('change', function() {
+            if (this.checked) {
+                document.body.classList.add('dark-mode');
+                localStorage.setItem('theme', 'dark');
+            } else {
+                document.body.classList.remove('dark-mode');
+                localStorage.setItem('theme', 'light');
+            }
+        });
+
         // Function to save tasks to localStorage
         function saveTasks() {
             localStorage.setItem('tasks', JSON.stringify(tasks));
@@ -266,7 +398,9 @@
         // Function to add a new task
         function addTask() {
             const taskInput = document.getElementById("taskInput");
+            const priorityInput = document.getElementById("priorityInput");
             const taskText = taskInput.value.trim();
+            const priority = priorityInput.value;
 
             if (taskText === "") {
                 alert("Please enter a task.");
@@ -276,6 +410,7 @@
             const task = {
                 id: Date.now(),
                 text: taskText,
+                priority: priority,
                 completed: false,
                 createdAt: new Date().toLocaleString()
             };
@@ -333,11 +468,18 @@
             const taskList = document.getElementById("taskList");
             taskList.innerHTML = "";
 
-            tasks.forEach((task, index) => {
+            // Optional: Sort tasks by priority (High to Low)
+            const priorityOrder = { 'high': 1, 'medium': 2, 'low': 3 };
+            const sortedTasks = tasks.sort((a, b) => priorityOrder[a.priority] - priorityOrder[b.priority]);
+
+            sortedTasks.forEach((task, index) => {
                 const li = document.createElement("li");
                 if (task.completed) {
                     li.classList.add("completed");
                 }
+
+                // Apply priority class
+                li.classList.add(`priority-${task.priority}`);
 
                 // Task Details
                 const taskDetails = document.createElement("div");
